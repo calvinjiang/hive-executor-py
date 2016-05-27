@@ -72,6 +72,10 @@ class TestHiveExecutorMethods(unittest.TestCase):
         self.assertRaises(HiveCommandExecuteError,
                           self.executor.show_tables, "test_db_name")
 
+    def test_show_databases(self):
+        if self.hive_enable:
+            self.assertEqual([],HiveCommandExecuteError,self.executor.show_databases("notexists_db_name"))
+
     def tearDown(self):
         self.executor = None
 

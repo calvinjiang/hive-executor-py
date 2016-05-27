@@ -2,7 +2,11 @@
 # Author: Hua Jiang
 # Date: 2016-04-23
 # Desc:
-#
+# This module includes two classes below.
+# An instance of the `CommandResult` class
+# may be looked as a DTO(Data Transfer Object).Some of methods in the `HiveExecutor`
+# class return result that is an instance of the `CommandResult` class.
+# You can use straight the object of `HiveExecutor` class to operate hive.
 ######################################
 
 import os
@@ -11,12 +15,9 @@ import re
 import logging
 from collections import OrderedDict
 from hive.exceptions import (HiveUnfoundError,
-                             SystemCommandExecuteError,
-                             HiveCommandExecuteError,
-                             )
+                             HiveCommandExecuteError)
 
 _logger = logging.getLogger(__name__)
-
 
 
 class CommandResult(object):
@@ -46,7 +47,7 @@ class HiveExecutor(object):
     """HiveExecutor may be looked as a wrapper of HiveCLI.
 
     You can create an object of HiveExecutor,then execute most of Hive commands
-    by the class methods.When you instantiate the class,firstly check if hive 
+    by the class methods.When you instantiate the class,firstly check if hive
     client is available.So you can use it as a substitute for Hive Client.
 
     Attributes
@@ -73,16 +74,16 @@ class HiveExecutor(object):
 
     Examples
     --------
-    >>> import HiveExecutor
-    >>> hive=HiveExecutor("hive")
-    >>> databases=hive.show_databases()
+    >>> from hive import HiveExecutor
+    >>> client=HiveExecutor("hive")
+    >>> databases=client.show_databases()
     >>> print(databases)
     ['default', 'test']
-    >>> databases=hive.show_databases('defau*')
+    >>> databases=client.show_databases('defau*')
     >>> print(databases)
     ['default']
 
-    >>> tables=hive.show_tables('default')
+    >>> tables=client.show_tables('default')
     ['table1', 'table2']
 
     """
@@ -127,8 +128,8 @@ class HiveExecutor(object):
         return False
 
     def show_tables(self, db_name, like_parttern=None):
-
-        if like_parttern: 
+        "substitute for `show tables`"
+        if like_parttern:
             like_parttern = "like '%s'" % (like_parttern)
         else:
             like_parttern = ""
@@ -145,8 +146,8 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
-
     def show_partitions(self, db_name, table_name, search_partitions=None):
+        "substitute for `show partitions`"
         explicit_partition = ""
         if search_partitions:
             if isinstance(search_partitions, OrderedDict):
@@ -161,7 +162,8 @@ class HiveExecutor(object):
                 raise ValueError(
                     "The passed argument partition must be OrderedDict type.")
 
-        hive_sql = "use %s;show partitions %s %s;" % (db_name, table_name, explicit_partition)
+        hive_sql = "use %s;show partitions %s %s;" % (
+            db_name, table_name, explicit_partition)
 
         _logger.debug("the function show_partitions() execute:%s" % (hive_sql))
 
@@ -176,8 +178,8 @@ class HiveExecutor(object):
 
         return None
 
-
     def show_functions(self):
+        "substitute for `show functions`"
         hive_sql = "show functions;"
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
@@ -199,6 +201,7 @@ class HiveExecutor(object):
         return False
 
     def show_create_table(self, db_name, table_name):
+        "substitute for `show create table`"
         hive_sql = "show create table %s.%s;" % (db_name, table_name)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
@@ -212,6 +215,7 @@ class HiveExecutor(object):
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
     def desc_table(self, db_name, table_name, extended=False):
+        "substitute for `desc table_name`"
         hive_sql = "desc %s.%s;" % (db_name, table_name)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
@@ -241,17 +245,16 @@ class HiveExecutor(object):
                     continue
 
                 line = line.strip()
-                if len(line)==0:
+                if len(line) == 0:
                     continue
 
-                field_info = {}
-                elements=None
-                m=re.match('(\S+)\s+(\S+)\s+(.*)',line)
+                elements = None
+                m = re.match('(\S+)\s+(\S+)\s+(.*)', line)
                 if m is None:
-                    m=re.match('(\S+)\s+(\S+)',line)
+                    m = re.match('(\S+)\s+(\S+)', line)
 
                 if m:
-                    elements=m.groups()
+                    elements = m.groups()
 
                 if elements:
                     if partition_info_flag:
@@ -260,13 +263,14 @@ class HiveExecutor(object):
                         fields_part_info.append(elements)
         return table_info
 
-    def show_databases(self,like_parttern=None):
+    def show_databases(self, like_parttern=None):
+        "substitute for `show databases`"
         if like_parttern:
             like_parttern = "like '%s'" % (like_parttern)
         else:
             like_parttern = ""
 
-        hive_sql="show databases %s;" %(like_parttern)
+        hive_sql = "show databases %s;" % (like_parttern)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
         cr = self.execute(sql=hive_sql)
@@ -278,9 +282,10 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
-
     def desc_database(self, db_name, extended=False):
-        hive_sql = "set hive.cli.print.header=true;desc database %s;" % (db_name)
+        "substitute for `desc database`"
+        hive_sql = "set hive.cli.print.header=true;desc database %s;" % (
+            db_name)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
         cr = self.execute(sql=hive_sql)
@@ -292,18 +297,20 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
-
-    def _parse_database(self,text):
+    def _parse_database(self, text):
+        "unsupported"
         return text
 
-
     def desc_function(self, db_name, table_name, extended=False):
+        "unsupported"
         pass
 
-    def desc_formatted_table(self,db_name,table_name):
+    def desc_formatted_table(self, db_name, table_name):
+        "unsupported"
         pass
 
     def show_roles(self):
+        "substitute for `show roles`"
         hive_sql = "show roles;"
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
@@ -317,9 +324,11 @@ class HiveExecutor(object):
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
     def drop_table(self, db_name, table_name):
+        "unsupported"
         pass
 
     def create_table(self, create_table_sql):
+        "unsupported"
         pass
 
     def _parse_partitions(self, text):
@@ -356,14 +365,28 @@ class HiveExecutor(object):
         return CommandResult(output, err, status)
 
     def execute(self, variable_substitution=None, init_sql_file=None, sql_file=None, sql=None, output_file=None):
+        """this method can be used to execute hive cliet commands.
+
+        Parameters
+        ----------
+        variable_substitution : Optional[str]
+            The parameter that contains key-value pairs is a dict type variant.
+        init_sql_file : Optional[str]
+            The path of the initialization sql file
+        sql_file : Optional[str]
+            The path of the hive sql
+        sql : Optional[str]
+            The hive sql,if this parameter is required,the parameter of the sql_file will be disable.
+        output_file : Optional[str]
+            When passed the parameter 'sql',this parameter can be used.
+
+        Raises
+        ------
+        ValueError
+            The parameters violate the rules below.
+
         """
-        Parameters:
-        variable_substitution:The parameter that contains key-value pairs is a dict type variant.
-        init_sql_file:the path of the initialization sql file
-        sql_file:the path of the hive sql
-        sql:the hive sql,if this parameter is required,the parameter of the sql_file will be disable.
-        output_file:when passed the parameter 'sql',this parameter can be used.
-        """
+
         # validate the parameters
         if variable_substitution and not isinstance(variable_substitution, dict):
             raise ValueError(
