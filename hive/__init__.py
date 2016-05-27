@@ -1,5 +1,5 @@
 __author__ = 'Hua Jiang'
-__versioninfo__ = (1, 0, 0)
+__versioninfo__ = (1, 0, 2)
 __version__ = '.'.join(map(str, __versioninfo__))
 __title__ = 'hive-executor-py'
 
