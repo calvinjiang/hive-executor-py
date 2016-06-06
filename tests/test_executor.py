@@ -64,6 +64,13 @@ class TestHiveExecutorMethods(unittest.TestCase):
         self.assertEqual(result, test_data.HIVE_DESC_TABLE_TEST_RESULT,
                          "the method HiveExecutor._parse_table() failed!")
 
+    def test_parse_database(self):
+        result = self.executor._parse_database(
+            test_data.HIVE_DESC_DATABASE_TEST_DATA)
+
+        self.assertEqual(result, test_data.HIVE_DESC_DATABASE_TEST_RESULT,
+                         "the method HiveExecutor._parse_database() failed!")
+
     def test_show_partitions(self):
         self.assertRaises(HiveCommandExecuteError,
                           self.executor.show_partitions, "test_db_name", "test_table_name")
@@ -74,7 +81,26 @@ class TestHiveExecutorMethods(unittest.TestCase):
 
     def test_show_databases(self):
         if self.hive_enable:
-            self.assertEqual([],HiveCommandExecuteError,self.executor.show_databases("notexists_db_name"))
+            self.assertEqual([], HiveCommandExecuteError,
+                             self.executor.show_databases("notexists_db_name"))
+
+    def test_drop_table(self):
+        if self.hive_enable:
+            self.assertEqual(True, self.executor.drop_table(
+                "test_db_name", "test_table_name"))
+        else:
+            self.assertRaises(
+                HiveCommandExecuteError, self.executor.drop_table, "test_db_name", "test_table_name")
+
+    def test_build_partitions(self):
+        result = self.executor._build_partitions(
+            test_data.HIVE_BUILD_PARTITIONS_TEST_DATA)
+
+        self.assertEqual(result, test_data.HIVE_BUILD_PARTITIONS_TEST_RESULT,
+                         "the method HiveExecutor._build_partitions() failed!")
+
+        self.assertEqual([], self.executor._build_partitions([]),
+                         "the method HiveExecutor._build_partitions() failed!")
 
     def tearDown(self):
         self.executor = None

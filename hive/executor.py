@@ -119,33 +119,6 @@ class HiveExecutor(object):
         else:
             return []
 
-    def has_table(self, db_name, table_name):
-        tables = self.show_tables(db_name)
-        for table in tables:
-            if table == table_name:
-                return True
-
-        return False
-
-    def show_tables(self, db_name, like_parttern=None):
-        "substitute for `show tables`"
-        if like_parttern:
-            like_parttern = "like '%s'" % (like_parttern)
-        else:
-            like_parttern = ""
-
-        hive_sql = "use %s;show tables %s;" % (db_name, like_parttern)
-
-        _logger.debug("executed hive sql:%s" % (hive_sql))
-        cr = self.execute(sql=hive_sql)
-
-        if cr.status == 0:
-            return self._parse_lines_to_sequence(cr.stdout_text)
-        else:
-            _logger.error(cr.stderr_text)
-            raise HiveCommandExecuteError(
-                "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
-
     def show_partitions(self, db_name, table_name, search_partitions=None):
         "substitute for `show partitions`"
         explicit_partition = ""
@@ -178,6 +151,89 @@ class HiveExecutor(object):
 
         return None
 
+    def add_partitions(self,db_name,table_name,partitions):
+        "substitute for `alter table db_name.table_name add if not exists partition(dt='',hour='');`"
+        hive_sql = "alter table %s.%s add if not exists \n" % (db_name,table_name)
+
+        built_partitions=self._build_partitions(partitions)
+
+        if len(built_partitions)>0:
+            hive_sql=hive_sql+"\n".join(built_partitions)+";"
+
+            _logger.debug("executed hive sql:%s" % (hive_sql))
+            cr = self.execute(sql=hive_sql)
+
+            if cr.status == 0:
+                return True
+            else:
+                _logger.error(cr.stderr_text)
+                raise HiveCommandExecuteError(
+                    "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+            return False
+
+    def drop_partitions(self,db_name,table_name,partitions):
+        """
+        substitute for `alter table db_name.table_name drop if exists 
+        partition(dt='',hour='');`
+        """
+        hive_sql = "alter table %s.%s drop if exists \n" % (db_name,table_name)
+
+        built_partitions=self._build_partitions(partitions)
+        
+        if len(built_partitions)>0:
+            hive_sql=hive_sql+"\n".join(built_partitions)+";"
+
+            _logger.debug("executed hive sql:%s" % (hive_sql))
+            cr = self.execute(sql=hive_sql)
+
+            if cr.status == 0:
+                return True
+            else:
+                _logger.error(cr.stderr_text)
+                raise HiveCommandExecuteError(
+                    "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+            return False
+
+    def _build_partitions(self,partitions):
+        built_partitions=[]
+        for partition in partitions:
+            values=[]
+            for key,value in partition.items():
+                if isinstance(value,int):
+                    values.append("%s=%s" %(key,value))
+                else:
+                    values.append("%s='%s'" %(key,value))
+            built_partitions.append("partition(%s)" %(",".join(values)))
+        return built_partitions
+
+    def has_table(self, db_name, table_name):
+        tables = self.show_tables(db_name)
+        for table in tables:
+            if table == table_name:
+                return True
+
+        return False
+
+    def show_tables(self, db_name, like_parttern=None):
+        "substitute for `show tables`"
+        if like_parttern:
+            like_parttern = "like '%s'" % (like_parttern)
+        else:
+            like_parttern = ""
+
+        hive_sql = "use %s;show tables %s;" % (db_name, like_parttern)
+
+        _logger.debug("executed hive sql:%s" % (hive_sql))
+        cr = self.execute(sql=hive_sql)
+
+        if cr.status == 0:
+            return self._parse_lines_to_sequence(cr.stdout_text)
+        else:
+            _logger.error(cr.stderr_text)
+            raise HiveCommandExecuteError(
+                "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+
+    
     def show_functions(self):
         "substitute for `show functions`"
         hive_sql = "show functions;"
@@ -282,7 +338,7 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
-    def desc_database(self, db_name, extended=False):
+    def desc_database(self, db_name):
         "substitute for `desc database`"
         hive_sql = "set hive.cli.print.header=true;desc database %s;" % (
             db_name)
@@ -298,14 +354,23 @@ class HiveExecutor(object):
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
     def _parse_database(self, text):
-        "unsupported"
-        return text
+        db_info = {}
+        if text:
+            lines = text.strip().split("\n")
+            if len(lines) == 2:
+                header_names = re.split("\s+", lines[0])
+                values = re.split("\s+", lines[1])
+                for idx, value in enumerate(header_names):
+                    if len(values) > idx:
+                        if value=="comment" and values[idx].startswith("hdfs://"):
+                            values.insert(idx,"")
+                        db_info[value] = values[idx]
+                    else:
+                        db_info[value] = ""
+
+        return db_info
 
     def desc_function(self, db_name, table_name, extended=False):
-        "unsupported"
-        pass
-
-    def desc_formatted_table(self, db_name, table_name):
         "unsupported"
         pass
 
@@ -324,12 +389,56 @@ class HiveExecutor(object):
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
     def drop_table(self, db_name, table_name):
-        "unsupported"
-        pass
+        "substitute for `drop table db_name.table_name`"
+        hive_sql = "drop table if exists %s.%s;" %(db_name,table_name)
 
-    def create_table(self, create_table_sql):
-        "unsupported"
-        pass
+        _logger.debug("executed hive sql:%s" % (hive_sql))
+        cr = self.execute(sql=hive_sql)
+
+        if cr.status == 0:
+            return True
+        else:
+            _logger.error(cr.stderr_text)
+            raise HiveCommandExecuteError(
+                "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+        return False
+
+    def load_data(self,inpath,db,table_name,partitions=None,local=True,overwrite=True):
+        """
+        substitute for `load data [local] inpath '' 
+        [overwrite] into TABLE table_name 
+        partition (dt='20160501',hour='12')`
+        """
+        hive_sql=""
+        if local:
+            hive_sql = "load data local inpath '%s.%s'" %(inpath)
+        else:
+            hive_sql = "load data inpath '%s.%s'" %(inpath)
+
+        if overwrite:
+            hive_sql="%s overwrite into table %s.%s" %(hive_sql,db,table_name)
+        else:
+            hive_sql="%s into table %s.%s" %(hive_sql,db,table_name)
+
+        if partitions:
+            partition_seq=[]
+            for key,value in partitions.items():
+                partition_seq.append("%s='%s'" %(key,value))
+            hive_sql="%s partition (%s);" %(hive_sql,",".join(partition_seq))
+        else:
+            hive_sql="%s;" %(hive_sql)
+
+        _logger.debug("executed hive sql:%s" % (hive_sql))
+        cr = self.execute(sql=hive_sql)
+
+        if cr.status == 0:
+            return True
+        else:
+            _logger.error(cr.stderr_text)
+            raise HiveCommandExecuteError(
+                "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+        return False
+
 
     def _parse_partitions(self, text):
         partitions = []
@@ -363,6 +472,7 @@ class HiveExecutor(object):
         output, err = process.communicate()
         status = process.poll()
         return CommandResult(output, err, status)
+
 
     def execute(self, variable_substitution=None, init_sql_file=None, sql_file=None, sql=None, output_file=None):
         """this method can be used to execute hive cliet commands.
