@@ -10,37 +10,21 @@
 ######################################
 
 import os
+import sys
 import subprocess
 import re
 import logging
 from collections import OrderedDict
+from utils.calendar import Calendar
+from utils.cmd import CommandExecutor
+from utils.cmd import CommandResult
+
 from hive.exceptions import (HiveUnfoundError,
                              HiveCommandExecuteError)
 
+
 _logger = logging.getLogger(__name__)
 
-
-class CommandResult(object):
-    """The class will be used to stored result of some methods in HivExecutor.
-
-    Up to now the class only be used in the method of _execute_system_command
-    in the class HiveExecutor.
-
-    Attributes
-    ----------
-    stdout_text : str
-        The result of standart out.
-    stderr_text : str
-        The result of standart error.
-    status : int
-        The status of system command returns.
-
-    """
-
-    def __init__(self, stdout_text, stderr_text, status):
-        self.stdout_text = stdout_text
-        self.stderr_text = stderr_text
-        self.status = status
 
 
 class HiveExecutor(object):
@@ -94,7 +78,7 @@ class HiveExecutor(object):
                 "When you passed the argument of hive_cmd_path,it should have a value.")
 
         cmd = "which %s" % (hive_cmd_path)
-        result = self._execute_system_command(cmd)
+        result = CommandExecutor.system(cmd)
 
         if result.status != 0:
             raise HiveUnfoundError(
@@ -411,9 +395,9 @@ class HiveExecutor(object):
         """
         hive_sql=""
         if local:
-            hive_sql = "load data local inpath '%s.%s'" %(inpath)
+            hive_sql = "load data local inpath '%s'" %(inpath)
         else:
-            hive_sql = "load data inpath '%s.%s'" %(inpath)
+            hive_sql = "load data inpath '%s'" %(inpath)
 
         if overwrite:
             hive_sql="%s overwrite into table %s.%s" %(hive_sql,db,table_name)
@@ -465,14 +449,7 @@ class HiveExecutor(object):
 
         return tables
 
-    def _execute_system_command(self, command):
-        status = 0
-        process = subprocess.Popen(
-            command, shell=True, stdin=None, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        output, err = process.communicate()
-        status = process.poll()
-        return CommandResult(output, err, status)
-
+   
 
     def execute(self, variable_substitution=None, init_sql_file=None, sql_file=None, sql=None, output_file=None):
         """this method can be used to execute hive cliet commands.
@@ -549,6 +526,6 @@ class HiveExecutor(object):
 
         _logger.info("the function execute:%s" % (execute_cmd))
 
-        cr = self._execute_system_command(execute_cmd)
+        cr = CommandExecutor.system(execute_cmd)
 
         return cr

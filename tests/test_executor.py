@@ -5,9 +5,11 @@ import sys
 import os
 import logging
 import logging.config
+from utils.cmd import CommandResult
+from utils.cmd import CommandExecutor
+
 sys.path.append("..")
 from hive.executor import HiveExecutor
-from hive.executor import CommandResult
 from hive.exceptions import HiveUnfoundError
 from hive.exceptions import HiveCommandExecuteError
 import test_data
@@ -38,7 +40,7 @@ class TestHiveExecutorMethods(unittest.TestCase):
             self.executor = HiveExecutor("hive")
 
     def test_execute_system_command(self):
-        rc = self.executor._execute_system_command("ls ")
+        rc = CommandExecutor.system("ls ")
         self.assertTrue(isinstance(rc, CommandResult),
                         "return value type error,not a CommandResult instance.")
 
