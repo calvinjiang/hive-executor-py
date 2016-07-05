@@ -26,7 +26,6 @@ from hive.exceptions import (HiveUnfoundError,
 _logger = logging.getLogger(__name__)
 
 
-
 class HiveExecutor(object):
     """HiveExecutor may be looked as a wrapper of HiveCLI.
 
@@ -72,7 +71,7 @@ class HiveExecutor(object):
 
     """
 
-    def __init__(self, hive_cmd_path="hive", verbose=False):
+    def __init__(self, hive_cmd_path="hive", hive_init_settings=[], verbose=False):
         if hive_cmd_path is None or len(hive_cmd_path) == 0:
             raise ValueError(
                 "When you passed the argument of hive_cmd_path,it should have a value.")
@@ -86,6 +85,7 @@ class HiveExecutor(object):
 
         self.hive_cmd_path = hive_cmd_path
         self.enable_verbose_mode = verbose
+        self.hive_init_settings = hive_init_settings
         self.__default_hive_command = self.hive_cmd_path + " -S "
 
     def has_partitions(self, db_name, table_name, check_partitions):
@@ -135,14 +135,15 @@ class HiveExecutor(object):
 
         return None
 
-    def add_partitions(self,db_name,table_name,partitions):
+    def add_partitions(self, db_name, table_name, partitions):
         "substitute for `alter table db_name.table_name add if not exists partition(dt='',hour='');`"
-        hive_sql = "alter table %s.%s add if not exists \n" % (db_name,table_name)
+        hive_sql = "alter table %s.%s add if not exists \n" % (
+            db_name, table_name)
 
-        built_partitions=self._build_partitions(partitions)
+        built_partitions = self._build_partitions(partitions)
 
-        if len(built_partitions)>0:
-            hive_sql=hive_sql+"\n".join(built_partitions)+";"
+        if len(built_partitions) > 0:
+            hive_sql = hive_sql + "\n".join(built_partitions) + ";"
 
             _logger.debug("executed hive sql:%s" % (hive_sql))
             cr = self.execute(sql=hive_sql)
@@ -155,17 +156,18 @@ class HiveExecutor(object):
                     "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
             return False
 
-    def drop_partitions(self,db_name,table_name,partitions):
+    def drop_partitions(self, db_name, table_name, partitions):
         """
         substitute for `alter table db_name.table_name drop if exists 
         partition(dt='',hour='');`
         """
-        hive_sql = "alter table %s.%s drop if exists \n" % (db_name,table_name)
+        hive_sql = "alter table %s.%s drop if exists \n" % (
+            db_name, table_name)
 
-        built_partitions=self._build_partitions(partitions)
-        
-        if len(built_partitions)>0:
-            hive_sql=hive_sql+"\n".join(built_partitions)+";"
+        built_partitions = self._build_partitions(partitions)
+
+        if len(built_partitions) > 0:
+            hive_sql = hive_sql + "\n".join(built_partitions) + ";"
 
             _logger.debug("executed hive sql:%s" % (hive_sql))
             cr = self.execute(sql=hive_sql)
@@ -178,16 +180,16 @@ class HiveExecutor(object):
                     "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
             return False
 
-    def _build_partitions(self,partitions):
-        built_partitions=[]
+    def _build_partitions(self, partitions):
+        built_partitions = []
         for partition in partitions:
-            values=[]
-            for key,value in partition.items():
-                if isinstance(value,int):
-                    values.append("%s=%s" %(key,value))
+            values = []
+            for key, value in partition.items():
+                if isinstance(value, int):
+                    values.append("%s=%s" % (key, value))
                 else:
-                    values.append("%s='%s'" %(key,value))
-            built_partitions.append("partition(%s)" %(",".join(values)))
+                    values.append("%s='%s'" % (key, value))
+            built_partitions.append("partition(%s)" % (",".join(values)))
         return built_partitions
 
     def has_table(self, db_name, table_name):
@@ -217,7 +219,6 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
 
-    
     def show_functions(self):
         "substitute for `show functions`"
         hive_sql = "show functions;"
@@ -346,8 +347,8 @@ class HiveExecutor(object):
                 values = re.split("\s+", lines[1])
                 for idx, value in enumerate(header_names):
                     if len(values) > idx:
-                        if value=="comment" and values[idx].startswith("hdfs://"):
-                            values.insert(idx,"")
+                        if value == "comment" and values[idx].startswith("hdfs://"):
+                            values.insert(idx, "")
                         db_info[value] = values[idx]
                     else:
                         db_info[value] = ""
@@ -374,7 +375,7 @@ class HiveExecutor(object):
 
     def drop_table(self, db_name, table_name):
         "substitute for `drop table db_name.table_name`"
-        hive_sql = "drop table if exists %s.%s;" %(db_name,table_name)
+        hive_sql = "drop table if exists %s.%s;" % (db_name, table_name)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
         cr = self.execute(sql=hive_sql)
@@ -387,30 +388,32 @@ class HiveExecutor(object):
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
         return False
 
-    def load_data(self,inpath,db,table_name,partitions=None,local=True,overwrite=True):
+    def load_data(self, inpath, db, table_name, partitions=None, local=True, overwrite=True):
         """
         substitute for `load data [local] inpath '' 
         [overwrite] into TABLE table_name 
         partition (dt='20160501',hour='12')`
         """
-        hive_sql=""
+        hive_sql = ""
         if local:
-            hive_sql = "load data local inpath '%s'" %(inpath)
+            hive_sql = "load data local inpath '%s'" % (inpath)
         else:
-            hive_sql = "load data inpath '%s'" %(inpath)
+            hive_sql = "load data inpath '%s'" % (inpath)
 
         if overwrite:
-            hive_sql="%s overwrite into table %s.%s" %(hive_sql,db,table_name)
+            hive_sql = "%s overwrite into table %s.%s" % (
+                hive_sql, db, table_name)
         else:
-            hive_sql="%s into table %s.%s" %(hive_sql,db,table_name)
+            hive_sql = "%s into table %s.%s" % (hive_sql, db, table_name)
 
         if partitions:
-            partition_seq=[]
-            for key,value in partitions.items():
-                partition_seq.append("%s='%s'" %(key,value))
-            hive_sql="%s partition (%s);" %(hive_sql,",".join(partition_seq))
+            partition_seq = []
+            for key, value in partitions.items():
+                partition_seq.append("%s='%s'" % (key, value))
+            hive_sql = "%s partition (%s);" % (
+                hive_sql, ",".join(partition_seq))
         else:
-            hive_sql="%s;" %(hive_sql)
+            hive_sql = "%s;" % (hive_sql)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
         cr = self.execute(sql=hive_sql)
@@ -422,7 +425,6 @@ class HiveExecutor(object):
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
         return False
-
 
     def _parse_partitions(self, text):
         partitions = []
@@ -448,8 +450,6 @@ class HiveExecutor(object):
                     tables.append(line)
 
         return tables
-
-   
 
     def execute(self, variable_substitution=None, init_sql_file=None, sql_file=None, sql=None, output_file=None):
         """this method can be used to execute hive cliet commands.
@@ -508,7 +508,10 @@ class HiveExecutor(object):
         hive_sql_file = ""
         hive_sql = ""
         if sql:
-            hive_sql = " -e \"%s\"" % (sql)
+            if len(self.hive_init_settings)>0:
+                hive_sql = " -e \"%s;%s\"" % (";".join(self.hive_init_settings),sql)
+            else:
+                hive_sql = " -e \"%s\"" % (sql)
         else:
             if sql_file:
                 hive_sql_file = " -f %s" % (sql_file)
