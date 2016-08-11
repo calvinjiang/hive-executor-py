@@ -45,6 +45,9 @@ class HiveExecutor(object):
     hive_cmd_path : Optional[str]
         The path of hive client.
         Default is 'hive'.
+    hive_init_settings : Optional[sequence]
+        The settings of hive client.
+        Default is [].An empty sequence.
     verbose : Optional[bool]
         Default is False.
 
@@ -68,6 +71,11 @@ class HiveExecutor(object):
 
     >>> tables=client.show_tables('default')
     ['table1', 'table2']
+    
+    >>> init_settings=[]
+    >>> init_settings.append("set mapred.job.queue.name=your_queue_name")
+    >>> init_settings.append("set hive.exec.dynamic.partition.mode=nonstrict")
+    >>> client=HiveExecutor(hive_cmd_path="hive",hive_init_settings=init_settings)
 
     """
 

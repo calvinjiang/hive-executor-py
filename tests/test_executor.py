@@ -15,7 +15,7 @@ from hive.exceptions import HiveCommandExecuteError
 import test_data
 
 #CONF_LOG = "../conf/logging.conf"
-# logging.config.fileConfig(CONF_LOG)
+#logging.config.fileConfig(CONF_LOG)
 
 logging.basicConfig(level=logging.ERROR,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
@@ -83,8 +83,7 @@ class TestHiveExecutorMethods(unittest.TestCase):
 
     def test_show_databases(self):
         if self.hive_enable:
-            self.assertEqual([], HiveCommandExecuteError,
-                             self.executor.show_databases("notexists_db_name"))
+            self.assertEqual([], self.executor.show_databases("notexists_db_name"))
 
     def test_drop_table(self):
         if self.hive_enable:
