@@ -1,6 +1,9 @@
 __author__ = 'Hua Jiang'
-__versioninfo__ = (1, 0, 0)
+__versioninfo__ = (1, 0, 4)
 __version__ = '.'.join(map(str, __versioninfo__))
+__title__ = 'hive-executor-py'
 
-__all__ = [
-    ]
+from .executor import HiveExecutor, CommandResult
+from .exceptions import HiveCommandExecuteError
+from .exceptions import HiveUnfoundError
+from .exceptions import SystemCommandExecuteError

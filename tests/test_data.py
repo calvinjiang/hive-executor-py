@@ -1,4 +1,5 @@
 # coding=UTF-8
+from collections import OrderedDict
 
 HIVE_PARTITIONS_TEST_DATA="""dt=20160508/hour=00/type=click
 dt=20160508/hour=00/type=deliver
@@ -248,3 +249,25 @@ adm     hdfs://AutoLqCluster/group_sjpt/hive_db/adm.db  root    USER"""
 
 HIVE_DESC_DATABASE_TEST_RESULT={"db_name":"adm","comment":"","location":"hdfs://AutoLqCluster/group_sjpt/hive_db/adm.db","owner_name":"root","owner_type":"USER","parameters":""}
 
+HIVE_BUILD_PARTITIONS_TEST_DATA=[]
+partition=OrderedDict()
+partition['dt']='20160501'
+partition['hour']='00'
+
+HIVE_BUILD_PARTITIONS_TEST_DATA.append(partition)
+
+partition=OrderedDict()
+partition['dt']=20160502
+partition['hour']=1
+HIVE_BUILD_PARTITIONS_TEST_DATA.append(partition)
+
+HIVE_BUILD_PARTITIONS_TEST_RESULT=["partition(dt='20160501',hour='00')","partition(dt=20160502,hour=1)"]
+
+HIVE_CREATE_TABLE_TEST_SQL="""
+create table if not exists default.test_table_123
+(
+name string comment 'name',
+age int comment 'age'
+)
+partitioned by(dt string,hour string);
+"""

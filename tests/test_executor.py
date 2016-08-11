@@ -5,15 +5,17 @@ import sys
 import os
 import logging
 import logging.config
+from utils.cmd import CommandResult
+from utils.cmd import CommandExecutor
+
 sys.path.append("..")
 from hive.executor import HiveExecutor
-from hive.executor import CommandResult
 from hive.exceptions import HiveUnfoundError
 from hive.exceptions import HiveCommandExecuteError
 import test_data
 
 #CONF_LOG = "../conf/logging.conf"
-# logging.config.fileConfig(CONF_LOG)
+#logging.config.fileConfig(CONF_LOG)
 
 logging.basicConfig(level=logging.ERROR,
                     format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
@@ -38,7 +40,7 @@ class TestHiveExecutorMethods(unittest.TestCase):
             self.executor = HiveExecutor("hive")
 
     def test_execute_system_command(self):
-        rc = self.executor._execute_system_command("ls ")
+        rc = CommandExecutor.system("ls ")
         self.assertTrue(isinstance(rc, CommandResult),
                         "return value type error,not a CommandResult instance.")
 
@@ -64,6 +66,13 @@ class TestHiveExecutorMethods(unittest.TestCase):
         self.assertEqual(result, test_data.HIVE_DESC_TABLE_TEST_RESULT,
                          "the method HiveExecutor._parse_table() failed!")
 
+    def test_parse_database(self):
+        result = self.executor._parse_database(
+            test_data.HIVE_DESC_DATABASE_TEST_DATA)
+
+        self.assertEqual(result, test_data.HIVE_DESC_DATABASE_TEST_RESULT,
+                         "the method HiveExecutor._parse_database() failed!")
+
     def test_show_partitions(self):
         self.assertRaises(HiveCommandExecuteError,
                           self.executor.show_partitions, "test_db_name", "test_table_name")
@@ -71,6 +80,28 @@ class TestHiveExecutorMethods(unittest.TestCase):
     def test_show_tables(self):
         self.assertRaises(HiveCommandExecuteError,
                           self.executor.show_tables, "test_db_name")
+
+    def test_show_databases(self):
+        if self.hive_enable:
+            self.assertEqual([], self.executor.show_databases("notexists_db_name"))
+
+    def test_drop_table(self):
+        if self.hive_enable:
+            self.assertEqual(True, self.executor.drop_table(
+                "test_db_name", "test_table_name"))
+        else:
+            self.assertRaises(
+                HiveCommandExecuteError, self.executor.drop_table, "test_db_name", "test_table_name")
+
+    def test_build_partitions(self):
+        result = self.executor._build_partitions(
+            test_data.HIVE_BUILD_PARTITIONS_TEST_DATA)
+
+        self.assertEqual(result, test_data.HIVE_BUILD_PARTITIONS_TEST_RESULT,
+                         "the method HiveExecutor._build_partitions() failed!")
+
+        self.assertEqual([], self.executor._build_partitions([]),
+                         "the method HiveExecutor._build_partitions() failed!")
 
     def tearDown(self):
         self.executor = None
