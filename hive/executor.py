@@ -71,7 +71,7 @@ class HiveExecutor(object):
 
     >>> tables=client.show_tables('default')
     ['table1', 'table2']
-    
+
     >>> init_settings=[]
     >>> init_settings.append("set mapred.job.queue.name=your_queue_name")
     >>> init_settings.append("set hive.exec.dynamic.partition.mode=nonstrict")
@@ -108,6 +108,7 @@ class HiveExecutor(object):
         partitions = self.show_partitions(db_name, table_name)
         if partitions and len(partitions) > 0:
             return partitions[-1]
+            # return partitions[-1:]
         else:
             return []
 
@@ -166,7 +167,7 @@ class HiveExecutor(object):
 
     def drop_partitions(self, db_name, table_name, partitions):
         """
-        substitute for `alter table db_name.table_name drop if exists 
+        substitute for `alter table db_name.table_name drop if exists
         partition(dt='',hour='');`
         """
         hive_sql = "alter table %s.%s drop if exists \n" % (
@@ -265,17 +266,86 @@ class HiveExecutor(object):
 
     def desc_table(self, db_name, table_name, extended=False):
         "substitute for `desc table_name`"
-        hive_sql = "desc %s.%s;" % (db_name, table_name)
+
+        if extended:
+            hive_sql = "desc formatted %s.%s;" % (db_name, table_name)
+        else:
+            hive_sql = "desc %s.%s;" % (db_name, table_name)
 
         _logger.debug("executed hive sql:%s" % (hive_sql))
         cr = self.execute(sql=hive_sql)
 
         if cr.status == 0:
-            return self._parse_table(cr.stdout_text)
+            if extended:
+                return self._parse_formatted_table(cr.stdout_text)
+            else:
+                return self._parse_table(cr.stdout_text)
         else:
             _logger.error(cr.stderr_text)
             raise HiveCommandExecuteError(
                 "the hive command:%s error! error info:%s" % (hive_sql, cr.stderr_text))
+
+    def _parse_extended_table(self, text):
+        "parse output of the hive command desc extended table to dict type."
+        table_info = {"tableName": None, "dbName": None, "owner": None, "createTime": None,
+                      "lastAccessTime": None, "retention": None,
+                      "viewOriginalText": None, "viewExpandedText": None, "tableType": None,
+                      "location": None, "inputFormat": None, "outputFormat": None,
+                      "compressed": None, "numBuckets": None,
+                      "line.delim": None, "field.delim": None, "serialization.format": None,
+                      "fields": [], "partitions": [], "bucketCols": [], "sortCols": [],
+                      }
+
+        if text:
+            m = re.search('.*Table\(([\s\S]*)\)', text)
+            if m is not None:
+                text = m.groups()[0]
+
+                end_tag = "],"
+                search_rules = {
+                    "fields": "sd:StorageDescriptor(cols:[", "partitions": "partitionKeys:[", "bucketCols": "bucketCols:[", "sortCols": "sortCols:["}
+
+                for key, search_tag in search_rules.items():
+                    sidx = text.find(search_tag)
+                    eidx = text.find(end_tag, sidx)
+                    fields_text = text[sidx + len(search_tag):eidx + 1]
+                    # generate fields info
+                    for field_schema in fields_text.split("FieldSchema("):
+                        values = field_schema.strip()[0:-2].split(",")
+                        if len(values) >= 2:
+                            field_dict = {}
+                            for value in values:
+                                field = value.strip().split(":")
+                                if len(field) > 1:
+                                    field_dict[field[0].strip()] = "".join(
+                                        field[1:])
+                            table_info[key].append(field_dict)
+
+                values = re.split("[,})]", text)
+
+                for key, _ in table_info.items():
+                    if key not in search_rules.keys():
+                        for value in values:
+                            value = value.lstrip()
+                            if value.startswith(key):
+                                table_info[key] = value[len(key) + 1:]
+
+                if table_info['field.delim'] is None:
+                    table_info['field.delim'] = '\0001'
+                else:
+                    print(len(table_info['field.delim']))
+                    if len(table_info['field.delim']) == 1:
+                        table_info['field.delim'] = chr(
+                            ord(table_info['field.delim']))
+
+                if table_info['line.delim'] is None:
+                    table_info['line.delim'] = '\n'
+                else:
+                    if len(table_info['line.delim']) == 1:
+                        table_info['line.delim'] = chr(
+                            ord(table_info['line.delim']))
+
+        return table_info
 
     def _parse_table(self, text):
         "parse output of the hive command desc table to dict type."
@@ -283,6 +353,7 @@ class HiveExecutor(object):
         partitions_part_info = []
         table_info = {"fields": fields_part_info,
                       "partitions": partitions_part_info}
+
         if text:
             partition_info_flag = False
             for line in text.strip().split("\n"):
@@ -311,6 +382,86 @@ class HiveExecutor(object):
                     else:
                         fields_part_info.append(elements)
         return table_info
+
+    def _parse_formatted_table(self, text):
+        "parse output of the hive command desc extended table to dict type."
+        fields_part_info = []
+        partitions_part_info = []
+
+        table_formatted_info = {"owner": None,
+                                "lastAccessTime": None, "retention": None,"tableType": None,
+                                "location": None, "inputFormat": None, "outputFormat": None,
+                                "compressed": None, "numBuckets": None,
+                                "line.delim": None, "field.delim": None, "serialization.format": None,
+                                "fields": fields_part_info, "partitions": partitions_part_info, "bucketColumns": [], "sortColumns": [],
+                                }
+
+        if text:
+            partition_info_flag = False
+            detailed_table_info_flag = False
+            storage_info_flag = False
+            lines = text.strip().split("\n")
+            if len(lines) > 2:
+                lines = lines[2:]
+
+            for line in lines:
+                if line.startswith("# Partition Information"):
+                    partition_info_flag = True
+                    continue
+
+                if line.startswith("# Detailed Table Information"):
+                    partition_info_flag=False
+                    detailed_table_info_flag = True
+                    continue
+
+                if line.startswith("# Storage Information"):
+                    partition_info_flag=False
+                    detailed_table_info_flag = False
+                    storage_info_flag = True
+                    continue
+
+                if line.find("col_name") >= 0 and line.find("data_type") >= 0:
+                    continue
+
+                if len(line.strip()) == 0:
+                    continue
+
+                elements = None
+                line = line.lstrip()
+                if detailed_table_info_flag or storage_info_flag:
+                    #print(repr(line))
+                    m = re.match(r'((?:\S+\s?)+\S+)\:?[ \t\v]+(\S+|[\n\r\f]?)', line)
+                else:
+                    m = re.match(r'(\S+)\s+(\S+)\s+(.*)', line)
+                    if m is None:
+                        m = re.match(r'(\S+)\s+(\S+)', line)
+
+                if m:
+                    elements = m.groups()
+                    #print(elements)
+
+                if elements:
+                    if partition_info_flag:
+                        if len(elements)>=2:
+                            partitions_part_info.append(elements[:2])
+                    elif detailed_table_info_flag or storage_info_flag:
+                        if len(elements) == 2:
+                            key=elements[0]
+                            value=elements[1]
+                            pattern=re.compile(r"[\s|:]+")
+                            key= key[:1].lower()+re.sub(pattern,'',key[1:])
+                            if table_formatted_info.has_key(key):
+                                if key=="line.delim" and value=="":
+                                    value = r"\n"
+                                elif key=="bucketColumns" or key=="sortColumns":
+                                    p=re.compile("\[|\]")
+                                    value=re.sub(p,'',value).split(",")
+                                table_formatted_info[key] = value
+                    else:
+                        if len(elements)>=2:
+                            fields_part_info.append(elements[:2])
+
+        return table_formatted_info
 
     def show_databases(self, like_parttern=None):
         "substitute for `show databases`"
@@ -398,8 +549,8 @@ class HiveExecutor(object):
 
     def load_data(self, inpath, db, table_name, partitions=None, local=True, overwrite=True):
         """
-        substitute for `load data [local] inpath '' 
-        [overwrite] into TABLE table_name 
+        substitute for `load data [local] inpath ''
+        [overwrite] into TABLE table_name
         partition (dt='20160501',hour='12')`
         """
         hive_sql = ""
@@ -516,8 +667,9 @@ class HiveExecutor(object):
         hive_sql_file = ""
         hive_sql = ""
         if sql:
-            if len(self.hive_init_settings)>0:
-                hive_sql = " -e \"%s;%s\"" % (";".join(self.hive_init_settings),sql)
+            if len(self.hive_init_settings) > 0:
+                hive_sql = " -e \"%s;%s\"" % (
+                    ";".join(self.hive_init_settings), sql)
             else:
                 hive_sql = " -e \"%s\"" % (sql)
         else:

@@ -39,6 +39,14 @@ class TestHiveExecutorMethods(unittest.TestCase):
         else:
             self.executor = HiveExecutor("hive")
 
+    # def test_parse_extended_table(self):
+    #     table_info=self.executor._parse_extended_table(test_data.TABLE_DETAIL)
+    #     self.assertEqual(table_info,test_data.TABLE_DETAIL_RESULT,"the method HiveExecutor._parse_extended_table failed!")
+
+    def test_parse_formatted_table(self):
+        table_info=self.executor._parse_formatted_table(test_data.TABLE_FORMATTED_INFO)
+        self.assertEqual(table_info,test_data.TABLE_FORMATTED_INFO_PARSED_RESULT,"the method HiveExecutor._parse_formatted_table failed!")
+
     def test_execute_system_command(self):
         rc = CommandExecutor.system("ls ")
         self.assertTrue(isinstance(rc, CommandResult),

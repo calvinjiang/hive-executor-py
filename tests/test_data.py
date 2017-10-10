@@ -271,3 +271,168 @@ age int comment 'age'
 )
 partitioned by(dt string,hour string);
 """
+
+TABLE_DETAIL="""id                      bigint
+resumeparsedid          bigint
+name                    string
+mobile                  string
+email                   string
+birthday                string
+degree                  int
+gender                  int
+maxsalary               decimal(10,2)
+minsalary               decimal(10,2)
+joinworkdate            string
+targetworklocations     string
+targetposition          string
+career                  string
+projects                string
+education               string
+currentprovincecode     string
+currentcitycode         string
+currentcity             string
+currentdistrictcode     string
+currentdistrict         string
+currentprovince         string
+worktype                int
+targetjobtype           string
+marriage                int
+registerlocation        string
+politicalstatus         string
+selfevaluation          string
+status                  int
+currentcompany          string
+currentindustry         string
+currentposition         string
+currentsalary           string
+targetindustry          string
+source                  string
+qq                      string
+skills                  string
+products                string
+certificates            string
+externalrefid           string
+externalid              string
+subject                 string
+emailcity               string
+emailjobtype            string
+categoryfirstcodes      string
+categorysecondcodes     string
+categorythirdcodes      string
+semanticfirstcodes      string
+semanticsecondcodes     string
+semanticthirdcodes      string
+createtime              string
+createby                string
+updatetime              string
+updateby                string
+languages               string
+trackid                 string
+rdcreatetime            string                  记录创建时间
+vdate                   string
+vhour                   string
+
+# Partition Information
+# col_name              data_type               comment
+
+vdate                   string
+vhour                   string
+
+Detailed Table Information  Table(tableName:s_resume_normal, dbName:stg, owner:hadoop, createTime:1488533187, lastAccessTime:0, retention:0, sd:StorageDescriptor(cols:[FieldSchema(name:id, type:bigint, comment:null), FieldSchema(name:resumeparsedid, type:bigint, comment:null), FieldSchema(name:name, type:string, comment:null), FieldSchema(name:mobile, type:string, comment:null), FieldSchema(name:email, type:string, comment:null), FieldSchema(name:birthday, type:string, comment:null), FieldSchema(name:degree, type:int, comment:null), FieldSchema(name:gender, type:int, comment:null), FieldSchema(name:maxsalary, type:decimal(10,2), comment:null), FieldSchema(name:minsalary, type:decimal(10,2), comment:null), FieldSchema(name:joinworkdate, type:string, comment:null), FieldSchema(name:targetworklocations, type:string, comment:null), FieldSchema(name:targetposition, type:string, comment:null), FieldSchema(name:career, type:string, comment:null), FieldSchema(name:projects, type:string, comment:null), FieldSchema(name:education, type:string, comment:null), FieldSchema(name:currentprovincecode, type:string, comment:null), FieldSchema(name:currentcitycode, type:string, comment:null), FieldSchema(name:currentcity, type:string, comment:null), FieldSchema(name:currentdistrictcode, type:string, comment:null), FieldSchema(name:currentdistrict, type:string, comment:null), FieldSchema(name:currentprovince, type:string, comment:null), FieldSchema(name:worktype, type:int, comment:null), FieldSchema(name:targetjobtype, type:string, comment:null), FieldSchema(name:marriage, type:int, comment:null), FieldSchema(name:registerlocation, type:string, comment:null), FieldSchema(name:politicalstatus, type:string, comment:null), FieldSchema(name:selfevaluation, type:string, comment:null), FieldSchema(name:status, type:int, comment:null), FieldSchema(name:currentcompany, type:string, comment:null), FieldSchema(name:currentindustry, type:string, comment:null), FieldSchema(name:currentposition, type:string, comment:null), FieldSchema(name:currentsalary, type:string, comment:null), FieldSchema(name:targetindustry, type:string, comment:null), FieldSchema(name:source, type:string, comment:null), FieldSchema(name:qq, type:string, comment:null), FieldSchema(name:skills, type:string, comment:null), FieldSchema(name:products, type:string, comment:null), FieldSchema(name:certificates, type:string, comment:null), FieldSchema(name:externalrefid, type:string, comment:null), FieldSchema(name:externalid, type:string, comment:null), FieldSchema(name:subject, type:string, comment:null), FieldSchema(name:emailcity, type:string, comment:null), FieldSchema(name:emailjobtype, type:string, comment:null), FieldSchema(name:categoryfirstcodes, type:string, comment:null), FieldSchema(name:categorysecondcodes, type:string, comment:null), FieldSchema(name:categorythirdcodes, type:string, comment:null), FieldSchema(name:semanticfirstcodes, type:string, comment:null), FieldSchema(name:semanticsecondcodes, type:string, comment:null), FieldSchema(name:semanticthirdcodes, type:string, comment:null), FieldSchema(name:createtime, type:string, comment:null), FieldSchema(name:createby, type:string, comment:null), FieldSchema(name:updatetime, type:string, comment:null), FieldSchema(name:updateby, type:string, comment:null), FieldSchema(name:languages, type:string, comment:null), FieldSchema(name:trackid, type:string, comment:null), FieldSchema(name:rdcreatetime, type:string, comment:记录创建时间), FieldSchema(name:vdate, type:string, comment:null), FieldSchema(name:vhour, type:string, comment:null)], location:oss://LTAI8IpG2WQ59zmQ:bXjPgYyNfZ6IBOPqU0wZxrCJQsV9bv@mf-hdfs.vpc100-oss-cn-beijing.aliyuncs.com/stg/s_resume_normal, inputFormat:org.apache.hadoop.mapred.TextInputFormat, outputFormat:org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat, compressed:false, numBuckets:-1, serdeInfo:SerDeInfo(name:null, serializationLib:org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe, parameters:{serialization.format=, line.delim=
+, field.delim=}), bucketCols:[], sortCols:[], parameters:{}, skewedInfo:SkewedInfo(skewedColNames:[], skewedColValues:[], skewedColValueLocationMaps:{}), storedAsSubDirectories:false), partitionKeys:[FieldSchema(name:vdate, type:string, comment:null), FieldSchema(name:vhour, type:string, comment:null)], parameters:{EXTERNAL=TRUE, transient_lastDdlTime=1488533187}, viewOriginalText:null, viewExpandedText:null, tableType:EXTERNAL_TABLE)"""
+
+TABLE_DETAIL_RESULT={'outputFormat': 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat', 'serialization.format': None, 'field.delim': '', 'sortCols': [], 'inputFormat': 'org.apache.hadoop.mapred.TextInputFormat', 'compressed': 'false', 'fields': [{'comment': 'null', 'type': 'bigint', 'name': 'id'}, {'comment': 'null', 'type': 'bigint', 'name': 'resumeparsedid'}, {'comment': 'null', 'type': 'string', 'name': 'name'}, {'comment': 'null', 'type': 'string', 'name': 'mobile'}, {'comment': 'null', 'type': 'string', 'name': 'email'}, {'comment': 'null', 'type': 'string', 'name': 'birthday'}, {'comment': 'null', 'type': 'int', 'name': 'degree'}, {'comment': 'null', 'type': 'int', 'name': 'gender'}, {'comment': 'null', 'type': 'decimal(10', 'name': 'maxsalary'}, {'comment': 'null', 'type': 'decimal(10', 'name': 'minsalary'}, {'comment': 'null', 'type': 'string', 'name': 'joinworkdate'}, {'comment': 'null', 'type': 'string', 'name': 'targetworklocations'}, {'comment': 'null', 'type': 'string', 'name': 'targetposition'}, {'comment': 'null', 'type': 'string', 'name': 'career'}, {'comment': 'null', 'type': 'string', 'name': 'projects'}, {'comment': 'null', 'type': 'string', 'name': 'education'}, {'comment': 'null', 'type': 'string', 'name': 'currentprovincecode'}, {'comment': 'null', 'type': 'string', 'name': 'currentcitycode'}, {'comment': 'null', 'type': 'string', 'name': 'currentcity'}, {'comment': 'null', 'type': 'string', 'name': 'currentdistrictcode'}, {'comment': 'null', 'type': 'string', 'name': 'currentdistrict'}, {'comment': 'null', 'type': 'string', 'name': 'currentprovince'}, {'comment': 'null', 'type': 'int', 'name': 'worktype'}, {'comment': 'null', 'type': 'string', 'name': 'targetjobtype'}, {'comment': 'null', 'type': 'int', 'name': 'marriage'}, {'comment': 'null', 'type': 'string', 'name': 'registerlocation'}, {'comment': 'null', 'type': 'string', 'name': 'politicalstatus'}, {'comment': 'null', 'type': 'string', 'name': 'selfevaluation'}, {'comment': 'null', 'type': 'int', 'name': 'status'}, {'comment': 'null', 'type': 'string', 'name': 'currentcompany'}, {'comment': 'null', 'type': 'string', 'name': 'currentindustry'}, {'comment': 'null', 'type': 'string', 'name': 'currentposition'}, {'comment': 'null', 'type': 'string', 'name': 'currentsalary'}, {'comment': 'null', 'type': 'string', 'name': 'targetindustry'}, {'comment': 'null', 'type': 'string', 'name': 'source'}, {'comment': 'null', 'type': 'string', 'name': 'qq'}, {'comment': 'null', 'type': 'string', 'name': 'skills'}, {'comment': 'null', 'type': 'string', 'name': 'products'}, {'comment': 'null', 'type': 'string', 'name': 'certificates'}, {'comment': 'null', 'type': 'string', 'name': 'externalrefid'}, {'comment': 'null', 'type': 'string', 'name': 'externalid'}, {'comment': 'null', 'type': 'string', 'name': 'subject'}, {'comment': 'null', 'type': 'string', 'name': 'emailcity'}, {'comment': 'null', 'type': 'string', 'name': 'emailjobtype'}, {'comment': 'null', 'type': 'string', 'name': 'categoryfirstcodes'}, {'comment': 'null', 'type': 'string', 'name': 'categorysecondcodes'}, {'comment': 'null', 'type': 'string', 'name': 'categorythirdcodes'}, {'comment': 'null', 'type': 'string', 'name': 'semanticfirstcodes'}, {'comment': 'null', 'type': 'string', 'name': 'semanticsecondcodes'}, {'comment': 'null', 'type': 'string', 'name': 'semanticthirdcodes'}, {'comment': 'null', 'type': 'string', 'name': 'createtime'}, {'comment': 'null', 'type': 'string', 'name': 'createby'}, {'comment': 'null', 'type': 'string', 'name': 'updatetime'}, {'comment': 'null', 'type': 'string', 'name': 'updateby'}, {'comment': 'null', 'type': 'string', 'name': 'languages'}, {'comment': 'null', 'type': 'string', 'name': 'trackid'}, {'comment': '\xe8\xae\xb0\xe5\xbd\x95\xe5\x88\x9b\xe5\xbb\xba\xe6\x97\xb6\xe9\x97\xb4', 'type': 'string', 'name': 'rdcreatetime'}, {'comment': 'null', 'type': 'string', 'name': 'vdate'}, {'comment': 'null', 'type': 'string', 'name': 'vhour'}], 'partitions': [{'comment': 'null', 'type': 'string', 'name': 'vdate'}, {'comment': 'null', 'type': 'string', 'name': 'vhour'}], 'tableName': 's_resume_normal', 'tableType': 'EXTERNAL_TABLE', 'createTime': '1488533187', 'viewOriginalText': 'null', 'location': 'oss://LTAI8IpG2WQ59zmQ:bXjPgYyNfZ6IBOPqU0wZxrCJQsV9bv@mf-hdfs.vpc100-oss-cn-beijing.aliyuncs.com/stg/s_resume_normal', 'bucketCols': [], 'numBuckets': '-1', 'owner': 'hadoop', 'viewExpandedText': 'null', 'lastAccessTime': '0', 'dbName': 'stg', 'line.delim': '', 'retention': '0'}
+
+TABLE_FORMATTED_INFO="""
+# col_name              data_type               comment
+
+id                      bigint
+resumeparsedid          bigint
+name                    string
+mobile                  string
+email                   string
+birthday                string
+degree                  int
+gender                  int
+maxsalary               decimal(10,2)
+minsalary               decimal(10,2)
+joinworkdate            string
+targetworklocations     string
+targetposition          string
+career                  string
+projects                string
+education               string
+currentprovincecode     string
+currentcitycode         string
+currentcity             string
+currentdistrictcode     string
+currentdistrict         string
+currentprovince         string
+worktype                int
+targetjobtype           string
+marriage                int
+registerlocation        string
+politicalstatus         string
+selfevaluation          string
+status                  int
+currentcompany          string
+currentindustry         string
+currentposition         string
+currentsalary           string
+targetindustry          string
+source                  string
+qq                      string
+skills                  string
+products                string
+certificates            string
+externalrefid           string
+externalid              string
+subject                 string
+emailcity               string
+emailjobtype            string
+categoryfirstcodes      string
+categorysecondcodes     string
+categorythirdcodes      string
+semanticfirstcodes      string
+semanticsecondcodes     string
+semanticthirdcodes      string
+createtime              string
+createby                string
+updatetime              string
+updateby                string
+languages               string
+trackid                 string
+
+# Partition Information
+# col_name              data_type               comment
+
+vdate                   string
+vhour                   string
+
+# Detailed Table Information
+Database:               stg
+Owner:                  hadoop
+CreateTime:             Tue Apr 18 18:30:36 CST 2017
+LastAccessTime:         UNKNOWN
+Retention:              0
+Location:               oss://LTAI8IpG2WQ59zmQ:bXjPgYyNfZ6IBOPqU0wZxrCJQsV9bv@mf-hdfs.vpc100-oss-cn-beijing.aliyuncs.com/stg/s_resume_normal_history
+Table Type:             EXTERNAL_TABLE
+Table Parameters:
+    EXTERNAL                TRUE
+    transient_lastDdlTime   1492511436
+
+# Storage Information
+SerDe Library:          org.apache.hadoop.hive.serde2.lazy.LazySimpleSerDe
+InputFormat:            org.apache.hadoop.mapred.TextInputFormat
+OutputFormat:           org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat
+Compressed:             No
+Num Buckets:            96
+Bucket Columns:         [id]
+Sort Columns:           []
+Storage Desc Params:
+    field.delim             \u0001
+    line.delim              \n
+    serialization.format    \u0001
+"""
+
+TABLE_FORMATTED_INFO_PARSED_RESULT={'bucketColumns': ['id'], 'outputFormat': 'org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat', 'serialization.format': '\\u0001', 'field.delim': '\\u0001', 'sortColumns': [''], 'inputFormat': 'org.apache.hadoop.mapred.TextInputFormat', 'compressed': 'No', 'fields': [('id', 'bigint'), ('resumeparsedid', 'bigint'), ('name', 'string'), ('mobile', 'string'), ('email', 'string'), ('birthday', 'string'), ('degree', 'int'), ('gender', 'int'), ('maxsalary', 'decimal(10,2)'), ('minsalary', 'decimal(10,2)'), ('joinworkdate', 'string'), ('targetworklocations', 'string'), ('targetposition', 'string'), ('career', 'string'), ('projects', 'string'), ('education', 'string'), ('currentprovincecode', 'string'), ('currentcitycode', 'string'), ('currentcity', 'string'), ('currentdistrictcode', 'string'), ('currentdistrict', 'string'), ('currentprovince', 'string'), ('worktype', 'int'), ('targetjobtype', 'string'), ('marriage', 'int'), ('registerlocation', 'string'), ('politicalstatus', 'string'), ('selfevaluation', 'string'), ('status', 'int'), ('currentcompany', 'string'), ('currentindustry', 'string'), ('currentposition', 'string'), ('currentsalary', 'string'), ('targetindustry', 'string'), ('source', 'string'), ('qq', 'string'), ('skills', 'string'), ('products', 'string'), ('certificates', 'string'), ('externalrefid', 'string'), ('externalid', 'string'), ('subject', 'string'), ('emailcity', 'string'), ('emailjobtype', 'string'), ('categoryfirstcodes', 'string'), ('categorysecondcodes', 'string'), ('categorythirdcodes', 'string'), ('semanticfirstcodes', 'string'), ('semanticsecondcodes', 'string'), ('semanticthirdcodes', 'string'), ('createtime', 'string'), ('createby', 'string'), ('updatetime', 'string'), ('updateby', 'string'), ('languages', 'string'), ('trackid', 'string')], 'partitions': [('vdate', 'string'), ('vhour', 'string')], 'tableType': 'EXTERNAL_TABLE', 'lastAccessTime': 'UNKNOWN', 'location': 'oss://LTAI8IpG2WQ59zmQ:bXjPgYyNfZ6IBOPqU0wZxrCJQsV9bv@mf-hdfs.vpc100-oss-cn-beijing.aliyuncs.com/stg/s_resume_normal_history', 'numBuckets': '96', 'owner': 'hadoop', 'line.delim': '\\n', 'retention': '0'}
